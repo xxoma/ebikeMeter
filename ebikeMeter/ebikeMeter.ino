@@ -10,6 +10,8 @@ int backlightPin = 9;
 int keyPin = 8;
 float pinVoltage = 0; // variable to hold the calculated voltage
 float batteryVoltage = 0;
+float totalVoltage = 0;
+float avgVoltage = 0;
 
 int analogInPin = A4;  // Analog input pin that the carrier board OUT is connected to
 int sensorValue = 0;        // value read from the carrier board
@@ -37,6 +39,7 @@ byte totalChargeAddr = 5;
 byte sampleAddr = 10;
 byte distanceAddr = 15;
 byte totalDistanceAddr = 20;
+byte totalVoltageAddr = 25;
 int R1 = 10000; // Resistance of R1 in ohms
 int R2 = 1000; // Resistance of R2 in ohms
 
@@ -68,6 +71,7 @@ void setup() {
   sample = EEPROM_float_read(sampleAddr); //read sample
   distance = EEPROM_float_read(distanceAddr); //read distance
   totalDistance = EEPROM_float_read(totalDistanceAddr);
+  totalVoltage = EEPROM_float_read(totalVoltageAddr);
 }
 
 void speed(){
@@ -159,7 +163,9 @@ void loop() {
  prevMsec = millis()-prevMsec; 
  msec = msec + prevMsec;
  
-  
+ totalVoltage = totalVoltage + batteryVoltage;
+ 
+ avgVoltage = totalVoltage / sample;
   
  time = (float) msec / 1000.0;
   
@@ -171,7 +177,7 @@ void loop() {
 
  ampHours = ampSeconds/3600;
   
- wattHours = batteryVoltage * ampHours;
+ wattHours = avgVoltage * ampHours;
  
  wattHkm = wattHours/distance;
 
@@ -188,6 +194,7 @@ void loop() {
      EEPROM_float_write(sampleAddr, (float)sample); //save sample
      EEPROM_float_write(distanceAddr, (float)distance); //save distance
      EEPROM_float_write(totalDistanceAddr, totalDistance);
+     EEPROM_float_write(totalVoltageAddr, totalVoltage);
      EEPROM.write(ledAddr, on_off_led);
      Display.Clear();
      Display.setTextColor(1);
