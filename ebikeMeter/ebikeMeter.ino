@@ -254,7 +254,7 @@ void display(){
     Display.print("Wh ");
     Display.setCursor(45,33);
     Display.setTextColor(0);
-    Display.print(amps, 1);
+    Display.print(amps, 2);
     Display.print("A");
 
     Display.setTextColor(1);
@@ -276,6 +276,12 @@ void display(){
 
     Display.fillRoundRect(0,58,95,10,0,1);
     Display.setTextColor(0);
+    if(on_off_led){
+      Display.setCursor(1,58);
+      Display.print("LED");
+    }else{
+      Display.print("");
+    }
     Display.setCursor(35,58);
     Display.print(totalDistance, 0);
     Display.print("km");
@@ -287,11 +293,13 @@ void resetMemory(){
     EEPROM_float_write(totalChargeAddr, 0);
     EEPROM_float_write(sampleAddr, 0);
     EEPROM_float_write(distanceAddr, 0);
+    EEPROM_float_write(totalVoltageAddr, 0);
 
     msec = 0;
     totalCharge = 0;
     sample = 0;
     distance = 0;
+    totalVoltage = 0;
 
     Display.Clear();
     Display.setTextColor(1);
