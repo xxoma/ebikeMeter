@@ -6,7 +6,7 @@ int batMonPin = A5;         // input pin for the voltage divider
 int batVal = 0;             // variable for the A/D value
 
 int backlightPin = 9;
-int keyPin = 8;
+//int keyPin = 8;
 float pinVoltage = 0;       // variable to hold the calculated voltage
 float batteryVoltage = 0;
 float totalVoltage = 0;
@@ -44,19 +44,20 @@ byte totalVoltageAddr = 25;
 int R1 = 10000; // Resistance of R1 in ohms
 int R2 = 1000; // Resistance of R2 in ohms
 
-int i = 0;
-
 volatile float period = 0.0;
 volatile unsigned long prevMillis = 0;
 volatile float speedValue = 0;
 volatile float distance = 0;
 volatile float totalDistance = 0;
 volatile float WHEEL = 2.070;
+volatile int i = 0;
 
 float ratio = 0;  // Calculated from R1 / R2
 //test branch
 void setup() {
-    attachInterrupt(0, speed, FALLING);
+    attachInterrupt(0, speed, FALLING); //interrupt for speed sensor
+
+    attachInterrupt(1, button, FALLING); //interrupt for button
 
     Display.Setup();
     Display.Clear();
@@ -66,7 +67,7 @@ void setup() {
 
     pinMode(backlightPin, OUTPUT);                        // backlight pin
 
-    pinMode(keyPin, INPUT);
+    //pinMode(keyPin, INPUT);
 
     on_off_led =  EEPROM.read(ledAddr);
     msec = EEPROM_float_read(msecAddr);                   //read time
@@ -78,15 +79,18 @@ void setup() {
 }
 
 void speed(){
-    delay(5);
     period = millis() - prevMillis;
     prevMillis = millis();
 
-    if(period > 30){
+    if(period > 50){
         speedValue = ((WHEEL/1000)/period)*1000*60*60;
         distance = distance+(WHEEL/1000);
         totalDistance = totalDistance+(WHEEL/1000);
     }
+}
+
+void button(){
+	i++;
 }
 
 void loop() {
@@ -96,20 +100,14 @@ void loop() {
     int sampleAmpVal = 0;
     int avgSAV = 0;
 
-    if(digitalRead(keyPin) == LOW){
-      delay(10);
-        i++;
-      }
-
-    if(digitalRead(keyPin) == HIGH){
-        if(i>0 && i<10){
-            on_off_led =!on_off_led;
-            i=0;
-        }
-        if(i>15){
-            resetMemory();
-            i = 0;
-        }
+    //button check
+    if((i>0 && i<2000)&&(millis() - prevMillis < 10000)){
+        on_off_led =!on_off_led;
+        i=0;
+    }
+    if(i>2000){
+        resetMemory();
+        i = 0;
     }
 
     if(millis() - prevMillis > 3000){
@@ -126,8 +124,9 @@ void loop() {
 
         saved = true;
 
-        if(digitalRead(keyPin) == LOW){
+        if(i>0 && i<2000){
             timeLed = millis()+10000;
+            i=0;
         }
 
         if(timeLed>millis()){
